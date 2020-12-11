@@ -15,20 +15,22 @@ p2 = [p2, rand(3,1), rand(3,1), rand(3,1)];
 p2 = [p2; ones(1, size(p2, 2))];
 
 %tests DLT (working fine)
-rt = dlt(p1(:, 1:4), p2(:, 1:4))
+%rt = dlt(p1(:, 1:4), p2(:, 1:4))
 
-% ransac to find the trasnformation
-m = myRansac(p1, p2, 1000, 0.2)
+% ransac to find the inliers
+inliers = myRansac(p1, p2, 1000, 0.2)
+
+[d,Z,tr] = procrustes(p1(inliers), p2(inliers));
 
 function rt = dlt(p1, p2)
     % Returns the matrix RT that contains the transformation from p2 to p1
     rt = p1 / p2;
 end
 
-function bestModel = myRansac(p1, p2, maxIterations, threshold)
+function bestInliers = myRansac(p1, p2, maxIterations, threshold)
     nPts = size(p1, 2);
 
-    bestModel = [];
+    bestInliers = [];
     bestScore = 0;
     
     for i = 1:maxIterations
@@ -45,12 +47,13 @@ function bestModel = myRansac(p1, p2, maxIterations, threshold)
         %modelo
         p2Transformed = model*p2(:, ptsToTest);
         norms = sqrt(sum((p1(:, ptsToTest)-p2Transformed).^2));
+        isInlier = norms < threshold;
         
         %number of nodes with norm smalled than the treshold
-        score = sum(norms < threshold);
+        score = sum(isInlier);
         
         if score > bestScore
-            bestModel = model;
+            bestInliers = [inliersHypothesis, ptsToTest(isInlier)]
             bestScore = score;
         end
     end
