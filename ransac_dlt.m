@@ -5,6 +5,9 @@ T = rand(3, 1)
 A = rand(3);
 [u, s, v] = svd(A);
 R = u*v';
+if det(R) == -1
+    R = -R;
+end
 
 p2 = R*p1 + T;
 

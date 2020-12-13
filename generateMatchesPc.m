@@ -1,4 +1,4 @@
-function new_pc = generate_PC (depth_array, im, camera_params)
+function new_pc = generateMatchesPc(depth_array, im, camera_params)
     
     [rows,cols]=size(depth_array);
 
