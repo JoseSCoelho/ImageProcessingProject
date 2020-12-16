@@ -9,7 +9,7 @@ function bestInliers = myRansac(p1, p2, maxIterations, threshold)
         inliersHypothesis = rnd(1:4); % escolhe 4 pontos (guarda os indices) (escolhe os primeiros 4 numeros do vetor rnd)
         ptsToTest = rnd(5:nPts);      % o resto dos pontos sao para serem testados
      
-        model = dlt(p1(:, inliersHypothesis), p2(:, inliersHypothesis)); % Homography matrix
+        model = dlt(p1(:, inliersHypothesis), p2(:, inliersHypothesis)); 
         
         %Testa cada ponto que não os inliersHypothesis para ver se são inliers deste
         %modelo
