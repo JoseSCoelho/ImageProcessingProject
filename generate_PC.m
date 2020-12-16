@@ -17,14 +17,5 @@ function new_pc = generate_PC (depth_array, match_coord, im, camera_params, var)
     end
     world = (camera_params.Krgb\[match_coord.*depth_matches' ; depth_matches'])';
     
-    %Elimina os pontos sem correspondencia na imagem depth
-    idx = find(world(:, 3) == 0);
-    world(idx, :) = [];
-    pc_color(idx, :) = [];
-    
     new_pc = pointCloud(world,'color', uint8(pc_color));
-   
-    figure();
-    pcshow(new_pc);
-    hold on;
 end 
