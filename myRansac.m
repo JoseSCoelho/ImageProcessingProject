@@ -10,6 +10,9 @@ function bestInliers = myRansac(p1, p2, maxIterations, threshold)
         ptsToTest = rnd(5:nPts);      % o resto dos pontos sao para serem testados
      
         model = dlt(p1(:, inliersHypothesis), p2(:, inliersHypothesis)); 
+        if(size(model) < 3)
+            continue;
+        end
         
         %Testa cada ponto que não os inliersHypothesis para ver se são inliers deste
         %modelo
@@ -29,5 +32,9 @@ end
 
 function rt = dlt(p1, p2)
     % Returns the matrix RT that contains the transformation from p2 to p1
-    rt = p1 / p2;
+    if rank(p1) < 3 || rank(p2) < 3
+        rt = 0;
+    else
+        rt = p1 / p2;
+    end
 end

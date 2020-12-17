@@ -90,25 +90,29 @@ PC_B = pointCloud(world,'color', color);
 
 %%
 %Corre o ransac, de modo a eliminar os outliers obtido pelo ubcmatch
-inliers_idx = myRansac(PC_A.Location', PC_B.Location', 5000, 200);
+inliers_idx = myRansac(PC_A.Location', PC_B.Location', 500, 200);
 
-PC_A_Inliers = generate_PC(virtual_depth_A, match_coord_A(:, inliers_idx), virtual_rgb_A, camera_params, 1);
-PC_B_Inliers = generate_PC(virtual_depth_B, match_coord_B(:, inliers_idx), virtual_rgb_B, camera_params, 1);
+PC_A_Inliers = pointCloud(PC_A.Location(inliers_idx, :), 'color', PC_A.Color(inliers_idx, :));
+PC_B_Inliers = pointCloud(PC_A.Location(inliers_idx, :), 'color', PC_B.Color(inliers_idx, :));
+
+%generate_PC(virtual_depth_A, match_coord_A(:, inliers_idx), virtual_rgb_A, camera_params, 1);
+%PC_B_Inliers = ;%generate_PC(virtual_depth_B, match_coord_B(:, inliers_idx), virtual_rgb_B, camera_params, 0);
 
 figure();
 pcshow(PC_A_Inliers);
-figure();
+hold on;
 pcshow(PC_B_Inliers);
 
 %%
-% p3 = [PC_B.Location(inliers_idx, :)'; ones(1, size(PC_B.Location(inliers_idx, :), 1))];
-% rt = PC_12.Location(inliers_idx, :)' / p3;
-% PC_A_estimado = (rt(:, 1:3)*PC_B.Location(inliers_idx, :)' + rt(:, 4))';    
-% norms = sqrt(sum((PC_A_estimado-PC_A.Location(inliers_idx, :)).^2, 2));
+% p3 = [PC_B_Inliers.Location'; ones(1, size(PC_B_Inliers.Location, 1))];
+% rt = PC_A_Inliers.Location' / p3;
+% PC_A_estimado = (rt(:, 1:3)*PC_B_Inliers.Location' + rt(:, 4))';    
+% norms = sqrt(sum((PC_A_estimado-PC_A_Inliers.Location).^2, 2));
+% pcest = pointCloud(PC_A_estimado);
 
 %Aplica o método de procrustes de modo a obter a Rotação e Translação
 [d,Z,tr] = procrustes(PC_A_Inliers.Location, ...
-        PC_B_Inliers.Location, 'scaling',false, 'reflection', false);
+        PC_B_Inliers.Location, 'scaling', false, 'reflection', false);
     
 Rot_Trans = [tr.T', mean(tr.c)'];
 
