@@ -104,19 +104,13 @@ hold on;
 pcshow(PC_B_Inliers);
 
 %%
-% p3 = [PC_B_Inliers.Location'; ones(1, size(PC_B_Inliers.Location, 1))];
-% rt = PC_A_Inliers.Location' / p3;
-% PC_A_estimado = (rt(:, 1:3)*PC_B_Inliers.Location' + rt(:, 4))';    
-% norms = sqrt(sum((PC_A_estimado-PC_A_Inliers.Location).^2, 2));
-% pcest = pointCloud(PC_A_estimado);
-
 %Aplica o método de procrustes de modo a obter a Rotação e Translação
 [d,Z,tr] = procrustes(PC_A_Inliers.Location, ...
         PC_B_Inliers.Location, 'scaling', false, 'reflection', false);
     
 Rot_Trans = [tr.T', mean(tr.c)'];
 
-PC_A_estimado = tr.b*PC_B_Inliers.Location*tr.T(:, 1:3) +  mean(tr.c);    
+PC_A_estimado = Rot_Trans(:, 1:3) * PC_B_Inliers.Location' + Rot_Trans(:, 4);
  
-norms = sqrt(sum((PC_A_estimado - PC_A_Inliers.Location).^2, 2));
-   
+norms = sqrt(sum((PC_A_estimado - PC_A_Inliers.Location').^2, 1));
+
