@@ -6,7 +6,7 @@ function [virtual_rgb, virtual_depth] = get_virtual_img(depth_array, im, camera_
     depth_pixel_frame = [vect_coluna(:),vect_linha(:), ones(cols*rows,1)]'; 
                             %Linhas 1 e 2 -> Pixeis; Linha 3 -> Para coordenadas homogeneas
 
-    Z = double(depth_array(:)); 
+    Z = double(depth_array(:)) / 1000; 
 
     depth_pixel_frame = transpose(Z.*transpose(depth_pixel_frame));
 
