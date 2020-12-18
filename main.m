@@ -1,5 +1,5 @@
 clear all;
-close all;
+%close all;
 
 camera_params = load('calib.mat');
 
@@ -10,6 +10,9 @@ max_n_points = 1;
 
 imgseq = [struct('rgb','short/rgb_image_13.png','depth','short/depth_13.mat')
           struct('rgb','short/rgb_image_14.png','depth','short/depth_14.mat')];
+
+% imgseq = [struct('rgb','newpiv2/rgb_image_1.png','depth','newpiv2/depth_1.mat')
+%           struct('rgb','newpiv2/rgb_image_2.png','depth','newpiv2/depth_2.mat')];
 
 rotations = zeros(length(imgseq), length(imgseq), 3, 3);
 translations = zeros(length(imgseq), length(imgseq), 3);
@@ -25,7 +28,7 @@ translations = zeros(length(imgseq), length(imgseq), 3);
         
         [virtual_rgb_A, virtual_depth_A] = get_virtual_img(depth_array, im, camera_params);
         %Obtem as features e descritores de cada imagem
-        [frame_A, descriptor_A] = vl_sift(single(rgb2gray(im)), 'edgethresh', 300);
+        [frame_A, descriptor_A] = vl_sift(single(rgb2gray(im)), 'edgethresh', 1000);
         frame_A(1:2, :) = round(frame_A(1:2, :)); %Arredonda os pontos obtidos para serem
                                             %usados como pixeis
     else
@@ -41,7 +44,7 @@ translations = zeros(length(imgseq), length(imgseq), 3);
     %depth_array = imread(imgseq(i+1).depth);
     
     [virtual_rgb_B, virtual_depth_B] = get_virtual_img(depth_array, im, camera_params);
-    [frame_B, descriptor_B] = vl_sift(single(rgb2gray(im)), 'edgethresh', 300);
+    [frame_B, descriptor_B] = vl_sift(single(rgb2gray(im)), 'edgethresh', 1000);
     frame_B(1:2, :) = round(frame_B(1:2, :));
 
     %Obtem os pontos correspondentes entre as duas imagens
@@ -97,13 +100,26 @@ translations = zeros(length(imgseq), length(imgseq), 3);
     %%
     %Aplica o método de procrustes de modo a obter a Rotação e Translação que trasnforma do B para o A
     [d,Z,tr] = procrustes(PC_A_Inliers.Location, ...
-            PC_B_Inliers.Location, 'scaling', true, 'reflection', false);
+            PC_B_Inliers.Location, 'scaling', false, 'reflection', false);
     rot = tr.T';
     trans = tr.c(1, :)';
     
     %So para ver se ta fixe
     PC_A_estimado = tr.b * rot * PC_B_Inliers.Location' + trans;
     norms = sqrt(sum((PC_A_estimado - PC_A_Inliers.Location').^2, 1));
+    
+    [icpTransf, pca_est_icp] = pcregistericp(pointCloud(PC_A_estimado'), PC_A_Inliers);
+    icpTransf = icpTransf.T';
+    %icpTransf(1:3, 1:3)' *
+    
+    PC_A_estimado_ICP = rot * PC_B_Inliers.Location' + trans; % - icpTransf(1:3, 4);
+
+     figure()
+     pcshow(PC_A_Inliers)
+     hold on;
+%     pcshow(PC_A_estimado', ones(length(PC_A_estimado_ICP), 3).*[255, 0, 0])
+     pcshow(pca_est_icp.Location, ones(length(pca_est_icp.Location'), 3).*[255, 0, 0])
+    
     
     % a = reshape(rotations(1, 2, :, :), [3, 3])
     
@@ -114,20 +130,35 @@ translations = zeros(length(imgseq), length(imgseq), 3);
     
     [rgb_A, rgb_B, wxyz_A, wxyz_B] = rgbd_to_pc(imgseq, 1, 2, camera_params);
     
-    %%
+    %%  
     wxyz_A_estimado = rot * wxyz_B' + trans;
-    
+
+%     max_A = max(wxyz_A);
+%     max_A_esp = max(wxyz_A_estimado');
+%     min_A = min(wxyz_A);
+%     min_A_esp = min(wxyz_A_estimado');
+%     
+%     remove_bigger = min(max_A, max_A_esp)% + abs((max_A - max_A_esp)/20)
+%     
+%     
+%     indexes_to_remove = find(wxyz_A(:, 1) > remove_bigger(1) | wxyz_A(:, 2) > remove_bigger(2) | wxyz_A(:, 3) > remove_bigger(3));
+%     wxyz_A(indexes_to_remove, :) = [];
+%     rgb_A(indexes_to_remove, :) = [];
+%     
+%     indexes_to_remove = find(wxyz_A_estimado(1, :) > remove_bigger(1) | wxyz_A_estimado(2, :) > remove_bigger(2) | wxyz_A_estimado(3, :) > remove_bigger(3));
+%     wxyz_A_estimado(:, indexes_to_remove) = [];
+%     
 %     
 %     centroid_A = sum(wxyz_A)/length(wxyz_A);
 %     centroid_A_estimado = sum(wxyz_A_estimado')/length(wxyz_A_estimado');
 %     
-%     trans_centroid = (centroid_A - centroid_A_estimado)/2;
+%     trans_centroid = (centroid_A - centroid_A_estimado);
 %    
 %     wxyz_A_estimado = rot * wxyz_B' + trans_centroid';
-    
+%     
 %     icpTransf = pcregistericp(pcdownsample(pointCloud(wxyz_A),'random', 0.1), pcdownsample(pointCloud(wxyz_A_estimado'),'random', 0.1));
 %     icpTransf = icpTransf.T';
-%     
+%      
 %     rot = icpTransf(1:3, 1:3)' * rot;
 %     trans = icpTransf(1:3, 4) + trans;
 %     
