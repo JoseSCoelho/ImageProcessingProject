@@ -1,14 +1,14 @@
 function [pc_rgb1,pc_rgb2,W_xyz1,W_xyz2] = rgbd_to_pc(imseq,index1,index2,cam)
 
 %Abrir as depth images que me interessam.
-% depth1 = imread(imseq(index1).depth);
-% depth2 = imread(imseq(index2).depth);
+depth1 = imread(imseq(index1).depth);
+depth2 = imread(imseq(index2).depth);
 
-depth1 = load(imseq(index1).depth);
-depth1 = depth1.depth_array;
-
-depth2 = load(imseq(index2).depth);
-depth2 = depth2.depth_array;
+% depth1 = load(imseq(index1).depth);
+% depth1 = depth1.depth_array;
+% 
+% depth2 = load(imseq(index2).depth);
+% depth2 = depth2.depth_array;
 
 %Retirar os valores de Z da depth image correspondente.
 z1 = double(depth1)*power(10,-3); %Converte milimetros em metros.
@@ -27,11 +27,11 @@ i2 = 1;
 %Apply Camera Model to get 3D points in the depth camera coordinate system
 for v = 1:640
     for u = 1:480
-        if z1(u,v) ~= 0 
+        if z1(u,v) > 0 
             W_xyz1(i1, :) = K\(z1(u,v)*[v; u; 1]); %XYZ without R and T applied
             i1 = i1+1;
         end
-        if z2(u,v) ~= 0 
+        if z2(u,v) > 0 
             W_xyz2(i2, :) = K\(z2(u,v)*[v; u; 1]);
             i2 = i2+1;
         end
@@ -56,11 +56,11 @@ omega2 = K_rgb*rgb_xyz2;
 
 omega1 = omega1';
 omega2 = omega2';
-omega_idx1 = find(omega1(:, 3) ~= 0);
+omega_idx1 = find(omega1(:, 3) > 0);
 v1 = ceil(omega1(omega_idx1, 2)./omega1(omega_idx1, 3));
 u1 = ceil(omega1(omega_idx1, 1)./omega1(omega_idx1, 3));
 
-omega_idx2 = find(omega2(:, 3) ~= 0);
+omega_idx2 = find(omega2(:, 3) > 0);
 v2 = ceil(omega2(omega_idx2, 2)./omega2(omega_idx2, 3));
 u2 = ceil(omega2(omega_idx2, 1)./omega2(omega_idx2, 3));
 
@@ -84,11 +84,15 @@ B2 = im2(:, :, 3);
 
 %Get rgb pixel values associated to each 3D point 
 for i=1:length(u1)
-    pc_rgb1(i, :) = [R1(v1(i),u1(i)) G1(v1(i),u1(i)) B1(v1(i),u1(i))];
+    if u1(i) > 0
+        pc_rgb1(i, :) = [R1(v1(i),u1(i)) G1(v1(i),u1(i)) B1(v1(i),u1(i))];
+    end
 end
 
 for i=1:length(u2)
-    pc_rgb2(i, :) = [R2(v2(i),u2(i)) G2(v2(i),u2(i)) B2(v2(i),u2(i))];
+    if u2(i) > 0
+        pc_rgb2(i, :) = [R2(v2(i),u2(i)) G2(v2(i),u2(i)) B2(v2(i),u2(i))];
+    end
 end
 % 
 %figure;
