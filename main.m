@@ -16,10 +16,17 @@ imgseq = imgseq.ans;
 % imgseq = [struct('rgb','newpiv2/rgb_image_1.png','depth','newpiv2/depth_1.mat')
 %           struct('rgb','newpiv2/rgb_image_2.png','depth','newpiv2/depth_2.mat')];
 
-rotations = zeros(length(imgseq), length(imgseq), 3, 3);
-translations = zeros(length(imgseq), length(imgseq), 3);
+numImgs = length(imgseq);
 
-for i = 1:(length(imgseq) - 1)
+rotations = zeros(numImgs, numImgs, 3, 3);
+translations = zeros(numImgs, numImgs, 3);
+
+% Fills diagonal with identity
+for i = 1:numImgs
+    rotations(i, i, :, :) = eye(3);
+end
+
+for i = 1:(numImgs - 1)
 %     i = 1;
     disp(i)
     %analisa para a imagem i e i+1
@@ -90,17 +97,86 @@ for i = 1:(length(imgseq) - 1)
     if(i > 1)
         %% guarda em (1, i+1)
         rotations(1, i+1, :, :) = rot * reshape(rotations(1, i, :, :), [3, 3]);
-        translations(1, i+1, :, :) = trans +  reshape(translations(1, i, :, :), [3, 1]);
+        translations(1, i+1, :, :) = trans + reshape(translations(1, i, :, :), [3, 1]);
     end
 end
 
-%%
+% Neste ponto já temos os Ri,1 e os Ri,(i+1) para as consecutivas
 
-for i = 1:(length(imgseq) - 1)
-    %% Gera as point cloud completas das imagens A e B
+%% calcula cada transformação de uma imagem para a outra a partir das
+% transformações de cada uma para a imagem 1
+for i = 1:numImgs
+    for j = 1:numImgs
+        if(sum(sum(abs(reshape(rotations(i, j, :, :), [3,3])))) == 0)
+            % se rotação i, j estiver vazia (cala valor da matriz a 0)
+            rotations(i, j, :, :) = reshape(rotations(1, i, :, :), [3, 3]) * reshape(rotations(1, j, :, :), [3, 3])';
+            translations(i, j, :, :) = reshape(translations(1, j, :, :), [3, 1]) - reshape(translations(1, i, :, :), [3, 1]);
+        end
+    end
+end
+
+%% Inicializa o grafo
+%plot(G, 'EdgeLabel', G.Edges.Weight)
+G = graph(zeros(numImgs));
+for i = 1:(numImgs - 1)
+    G = addedge(G, i, i+1, 1);
+end
+
+%% Procura as transformações parecidas
+
+sumDiffTransl = 0;
+sumDiffIdentity = 0;
+threshDiffIdentity = 0;
+treshTransl = 0;
+
+for i = 2:(numImgs - 1)
+    R1i = reshape(rotations(1, i, :, :), [3, 3]);
+    Ti1 = reshape(translations(1, i, :, :), [3, 1]);
+    
+    for j = 1:(i-1)
+        R1j = reshape(rotations(1, j, :, :), [3, 3]);
+        T1j = reshape(translations(1, j, :, :), [3, 1]);
+        
+        % Rji  (confirmar?)
+        a = R1j' * R1i;
+        % distancia entre as translações
+        diffTransl = norm(Ti1 - T1j);
+        
+        %compares how close the matrix is to Identity
+        diffIdentity = sum(sum(abs(a - eye(3))));
+        
+        if (j == i-1)
+            % ISTO SERVE PARA VER QUAL É UM BOM THRESHOLD. Faz uma média
+            % das diferenças entre as consecutivas, para perceber o que é
+            % uma transformação entre 2 imagens parecidas
+            sumDiffTransl = sumDiffTransl + diffTransl;
+            sumDiffIdentity = sumDiffIdentity + diffIdentity;
+            
+            threshDiffIdentity = sumDiffIdentity / j;
+            treshTransl = sumDiffTransl / j;
+        
+            % ignora as imagens consecutivas
+            continue;
+        end
+        
+        
+        
+        if(diffIdentity < threshDiffIdentity && diffTransl < treshTransl)
+            disp([i, j])
+            G = addedge(G, i, j, 1);
+        end
+    end
+end
+
+
+
+%% 
+
+for i = 1:(numImgs - 1)
+    % Gera as point cloud completas das imagens A e B
     [rgb_A, rgb_B, wxyz_A, wxyz_B] = rgbd_to_pc(imgseq, i, i+1, camera_params);
 
-    %%  Compoe a pointCloud com as novas imagens
+    %  Compoe a pointCloud com as novas imagens
     wxyz_A_estimado = reshape(rotations(1, i+1, :, :), [3, 3]) * wxyz_B' + reshape(translations(1, i+1, :, :), [3, 1]);
 
     if (i==1)
@@ -109,10 +185,11 @@ for i = 1:(length(imgseq) - 1)
     else
         pc2 = pointCloud(wxyz_A_estimado', 'color', uint8(rgb_B));
         %pc = pointCloud([pc.Location; wxyz_A_estimado'], 'color', uint8([pc.Color; rgb_B]));
-        pc = pcmerge(pc, pc2, 0.001);
+        pc = pcmerge(pc, pc2, 0.01);
+        %pc = pcdownsample(pc, 'gridAverage', 0.01);
     end
 
-    %%
+    %
 %     figure();
 %     pcshow(pc);
 end
