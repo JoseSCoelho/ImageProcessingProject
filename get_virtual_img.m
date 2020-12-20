@@ -58,13 +58,15 @@ function [virtual_rgb, virtual_depth] = get_virtual_img(depth_array, im, camera_
     rgb_image(1, find_) = cols;
     find_= find(rgb_image(2,:)>rows);
     rgb_image(2, find_) = rows;
-
+    
+    
     %Cria e preenche uma imagem depth do ponto de vista da camera RGB
     virtual_depth = zeros(rows, cols);
     for i=1:length(rgb_image)
         virtual_depth(rgb_image(2,i),rgb_image(1,i)) = rgb_image(3,i);
         %virtual_depth(rgb_image(2,i),rgb_image(1,i)) = depth_array();
     end
+    
     
     %Cria e preenche uma imagem RGB com os pontos fornecidos pela camera depth
     virtual_rgb = zeros(rows, cols, 3);

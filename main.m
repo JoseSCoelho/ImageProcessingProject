@@ -6,8 +6,11 @@ camera_params = load('calib.mat');
 w_frame = 1;
 max_n_points = 1;
 
-imgseq = load('midair.mat');
+imgseq = load('hobbesquiet.mat');
 imgseq = imgseq.ans;
+
+% imgseq = [struct('rgb','hobbesquiet/rgb_0008.jpg','depth','hobbesquiet/depth_0008.png')
+%           struct('rgb','hobbesquiet/rgb_0009.jpg','depth','hobbesquiet/depth_0009.png') ];
 
 % imgseq = [struct('rgb','short/rgb_image_12.png','depth','short/depth_12.mat')
 %           struct('rgb','short/rgb_image_13.png','depth','short/depth_13.mat')
@@ -137,20 +140,15 @@ treshTransl = 0;
 % TODO: ler da matriz
 
 for i = 2:(numImgs - 1)
-    R1i = reshape(rotations(1, i, :, :), [3, 3]);
-    T1i = reshape(translations(1, i, :, :), [3, 1]);
-    
     for j = 1:(i-1)
-        R1j = reshape(rotations(1, j, :, :), [3, 3]);
-        T1j = reshape(translations(1, j, :, :), [3, 1]);
+        Rji = reshape(rotations(j, i, :, :), [3, 3]);
+        Tji = reshape(translations(j, i, :, :), [3, 1]);
         
-        % Rji  (confirmar?)
-        a = R1j' * R1i;
         % distancia entre as translações
-        diffTransl = norm(T1i - T1j);
+        diffTransl = norm(Tji);
         
         %compares how close the matrix is to Identity
-        diffIdentity = sum(sum(abs(a - eye(3))));
+        diffIdentity = sum(sum(abs(Rji - eye(3))));
         
         if (j == i-1)
             % ISTO SERVE PARA VER QUAL É UM BOM THRESHOLD. Faz uma média
