@@ -9,14 +9,23 @@ function bestInliers = myRansac(p1, p2, maxIterations, threshold)
         inliersHypothesis = rnd(1:4); % escolhe 4 pontos (guarda os indices) (escolhe os primeiros 4 numeros do vetor rnd)
         ptsToTest = rnd(5:nPts);      % o resto dos pontos sao para serem testados
      
-        model = dlt(p1(:, inliersHypothesis), p2(:, inliersHypothesis)); 
-        if(size(model) < 3)
-            continue;
-        end
+%         model = dlt(p1(:, inliersHypothesis), p2(:, inliersHypothesis)); 
+%         if(size(model) < 3)
+%             continue;
+%         end
+
+        [d,Z,tr] = procrustes(p1(:, inliersHypothesis)', ...
+            p2(:, inliersHypothesis)', 'scaling', false, 'reflection', false);
+        rot = tr.T';
+        trans = tr.c(1, :)';
+        
+        model = [rot trans];
+        
+        
         
         %Testa cada ponto que não os inliersHypothesis para ver se são inliers deste
         %modelo
-        p2Transformed = model*p2(:, ptsToTest);
+        p2Transformed = model*[p2(:, ptsToTest); ones(1, length(ptsToTest))];
         norms = sqrt(sum((p1(:, ptsToTest)-p2Transformed).^2));
         isInlier = norms < threshold;
         
@@ -35,6 +44,6 @@ function rt = dlt(p1, p2)
     if rank(p1) < 3 || rank(p2) < 3
         rt = 0;
     else
-        rt = p1 / p2;
+        rt = p1 / [p2; ones(1, length(p2))];
     end
 end

@@ -7,7 +7,7 @@ w_frame = 1;
 max_n_points = 1;
 % imgseq = load('hobbesquiet.mat');
 % imgseq = imgseq.ans;
-% 
+
 imgseq = [struct('rgb','short/rgb_image_12.png','depth','short/depth_12.mat')
           struct('rgb','short/rgb_image_13.png','depth','short/depth_13.mat')
           struct('rgb','short/rgb_image_14.png','depth','short/depth_14.mat')
@@ -100,6 +100,12 @@ for i = 1:(numImgs - 1)
     %% COM TUDO CRL
 %     [rgb_A, rgb_B, wxyz_A, wxyz_B] = rgbd_to_pc(imgseq, i, i+1, camera_params);
 %     
+%     [rows,cols]=size(virtual_depth_A);
+%     [vect_coluna,vect_linha]= meshgrid(1:cols,1:rows);
+%     pixeis_all = [vect_coluna(:), vect_linha(:)];
+%     wxyz_A_PC = generate_PC(virtual_depth_A, pixeis_all', virtual_rgb_A, camera_params);
+%     wxyz_B_PC = generate_PC(virtual_depth_B, pixeis_all', virtual_rgb_B, camera_params);
+    
 %     max_A = max(wxyz_A);
 %     max_B = max(wxyz_B);
 %     min_A = min(wxyz_A);
@@ -115,12 +121,12 @@ for i = 1:(numImgs - 1)
 %     indexes_to_remove = find(wxyz_B(1, :) > remove_bigger(1) | wxyz_B(2, :) > remove_bigger(2) | wxyz_B(3, :) > remove_bigger(3));
 %     wxyz_B(indexes_to_remove, :) = [];
 %     rgb_B(indexes_to_remove, :) = [];
-%     
-%     
-%     [icpTransf, pca_est_icp] = pcregistericp(pcdownsample(pointCloud(wxyz_B), 'gridAverage', 0.1), ...
-%         pcdownsample(pointCloud(wxyz_A), 'gridAverage', 0.1), ...
+    
+    
+%     [icpTransf, pca_est_icp] = pcregistericp(pcdownsample(wxyz_B_PC, 'gridAverage', 0.01), ...
+%         pcdownsample(wxyz_A_PC, 'gridAverage', 0.01), ...
 %         'InitialTransform', procrustesRigid, ...  %, 'Tolerance', [0.0001, 0.01]
-%         'Verbose', true, 'InlierRatio', 0.6);
+%         'Verbose', true, 'InlierRatio', 0.2);
 %     
 %     icpTransf = icpTransf.T';
 %     rot = icpTransf(1:3, 1:3);
@@ -130,18 +136,28 @@ for i = 1:(numImgs - 1)
 %     procrustesRigid = affine3d([[tr.T zeros(3, 1)]; [tr.c(1, :), 1]]);
 %     
 %     
-%     %     %So para ver se ta fixe
+% %     %     %So para ver se ta fixe
 %     PC_A_estimado = tr.b * tr.T' * PC_B_Inliers.Location' + tr.c(1, :)';
 %     norms_proc = sum(sqrt(sum((PC_A_estimado - PC_A_Inliers.Location').^2, 1)));
+%   
+
+%     minnorm = 100000;
+%     icpTransfBest = 0;
+%     for j = 1:10
+%         ptsICP = randperm(length(PC_A_Inliers.Location))
+%         ptsICP = ptsICP(1:(length(PC_A_Inliers.Location)/2))
+%         [icpTransf, pca_est_icp] = pcregistericp(PC_B_Inliers, PC_A_Inliers, 'InitialTransform', procrustesRigid, 'Tolerance', [0.000001, 0.0001], 'Verbose', true, 'InlierRatio', 0.9);
+%         
+%         aa = pctransform(PC_B_Inliers, icpTransf);
+%         norms_icp = sum(sqrt(sum((aa.Location' - PC_A_Inliers.Location').^2, 1)));
+%         if (minnorm > norms_icp)
+%             minnorm = norms_icp;
+%             icpTransfBest = icpTransf.T';
+%         end
+%     end
 %     
-%     [icpTransf, pca_est_icp] = pcregistericp(PC_B_Inliers, PC_A_Inliers, 'InitialTransform', procrustesRigid, 'Tolerance', [0.000001, 0.0001], 'Verbose', true, 'InlierRatio', 0.9);
-%     %icpTransf = icpTransf.T';
-%     
-%     
-%     
-%     
-%     aa = pctransform(PC_B_Inliers, icpTransf);
-%     norms_icp = sum(sqrt(sum((aa.Location' - PC_A_Inliers.Location').^2, 1)));
+%     rot = icpTransfBest(1:3, 1:3);
+%     trans = icpTransfBest(1:3, 4);
 %     
 %     figure();
 %     pcshow(PC_A_Inliers);
@@ -170,8 +186,8 @@ for i = 1:(numImgs - 1)
     
     if(i > 1)
         %% guarda em (1, i+1)
-        rotations(1, i+1, :, :) = rot * reshape(rotations(1, i, :, :), [3, 3]);
-        translations(1, i+1, :, :) = trans + reshape(translations(1, i, :, :), [3, 1]);
+        rotations(1, i+1, :, :) = reshape(rotations(1, i, :, :), [3, 3]) * rot;
+        translations(1, i+1, :, :) = reshape(rotations(1, i, :, :), [3, 3]) * trans + reshape(translations(1, i, :, :), [3, 1]);
     end
 end
 
@@ -183,7 +199,7 @@ for i = 1:numImgs
     for j = 1:numImgs
         if(sum(sum(abs(reshape(rotations(i, j, :, :), [3,3])))) == 0)
             % se rotação i, j estiver vazia (cala valor da matriz a 0)
-            rotations(i, j, :, :) = reshape(rotations(1, i, :, :), [3, 3]) * reshape(rotations(1, j, :, :), [3, 3])';
+            rotations(i, j, :, :) = reshape(rotations(1, i, :, :), [3, 3])' * reshape(rotations(1, j, :, :), [3, 3]);
             translations(i, j, :, :) = reshape(translations(1, j, :, :), [3, 1]) - reshape(translations(1, i, :, :), [3, 1]);
         end
     end
@@ -249,11 +265,31 @@ end
 for i = 1:(numImgs - 1)
     % Gera as point cloud completas das imagens A e B
     [rgb_A, rgb_B, wxyz_A, wxyz_B] = rgbd_to_pc(imgseq, i, i+1, camera_params);
+    disp(i)
+    
+%     im = imread(imgseq(i).rgb);
+%     depth_array = load(imgseq(i).depth);
+%     depth_array = depth_array.depth_array;
+%     [virtual_rgb_A, virtual_depth_A] = get_virtual_img(depth_array, im, camera_params);
+%     
+%     im = imread(imgseq(i+1).rgb);
+%     depth_array = load(imgseq(i+1).depth);
+%     depth_array = depth_array.depth_array;
+%     [virtual_rgb_B, virtual_depth_B] = get_virtual_img(depth_array, im, camera_params);
+%     
+%     [rows,cols]=size(virtual_depth_A);
+%     [vect_coluna,vect_linha]= meshgrid(1:cols,1:rows);
+%     pixeis_all = [vect_coluna(:), vect_linha(:)];
+%     wxyz_A_PC = generate_PC(virtual_depth_A, pixeis_all', virtual_rgb_A, camera_params);
+%     wxyz_B_PC = generate_PC(virtual_depth_B, pixeis_all', virtual_rgb_B, camera_params);
+    
 
     %  Compoe a pointCloud com as novas imagens
+    % wxyz_A_estimado = reshape(rotations(1, i+1, :, :), [3, 3]) * wxyz_B_PC.Location' + reshape(translations(1, i+1, :, :), [3, 1]);
     wxyz_A_estimado = reshape(rotations(1, i+1, :, :), [3, 3]) * wxyz_B' + reshape(translations(1, i+1, :, :), [3, 1]);
 
     if (i==1)
+        % pc = pointCloud([wxyz_A_PC.Location; wxyz_A_estimado'], 'color', uint8([wxyz_A_PC.Color; wxyz_B_PC.Color]));
         pc = pointCloud([wxyz_A; wxyz_A_estimado'], 'color', uint8([rgb_A; rgb_B]));
         pc = pcdownsample(pc, 'gridAverage', 0.001);
     else
@@ -268,6 +304,5 @@ for i = 1:(numImgs - 1)
 %     pcshow(pc);
 end
 
-%%
 figure();
 pcshow(pc);
