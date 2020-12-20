@@ -1,14 +1,14 @@
 function [pc_rgb1,pc_rgb2,W_xyz1,W_xyz2] = rgbd_to_pc(imseq,index1,index2,cam)
 
 %Abrir as depth images que me interessam.
-depth1 = imread(imseq(index1).depth);
-depth2 = imread(imseq(index2).depth);
+% depth1 = imread(imseq(index1).depth);
+% depth2 = imread(imseq(index2).depth);
 
-% depth1 = load(imseq(index1).depth);
-% depth1 = depth1.depth_array;
-% 
-% depth2 = load(imseq(index2).depth);
-% depth2 = depth2.depth_array;
+depth1 = load(imseq(index1).depth);
+depth1 = depth1.depth_array;
+
+depth2 = load(imseq(index2).depth);
+depth2 = depth2.depth_array;
 
 %Retirar os valores de Z da depth image correspondente.
 z1 = double(depth1)*power(10,-3); %Converte milimetros em metros.

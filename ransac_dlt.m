@@ -1,4 +1,4 @@
-%generate points p1, and p2 from a random transformation
+%% generate points p1, and p2 from a random transformation
 p1 = rand(3, 10);
 
 T = rand(3, 1)
@@ -9,7 +9,37 @@ if det(R) == -1
     R = -R;
 end
 
-p2 = R*p1 + T;
+p2 = R*p1 + T + rand(3, length(p1)) * 0.1;
+
+%%
+
+[d,Z,tr] = procrustes(p1', p2');
+
+procrustesRigid = affine3d([[tr.T zeros(3, 1)]; [tr.c(1, :), 1]]);
+
+%, 'Verbose', true
+%[icpTransf, pca_est_icp] = pcregistericp(pointCloud(Z), pointCloud(p1'));
+[icpTransf, pca_est_icp] = pcregistericp(pointCloud(p2'), pointCloud(p1'), 'InitialTransform', procrustesRigid); 
+
+
+
+% pcshow(p1', ones(length(p1), 3).*[255, 0, 0])
+% hold on;
+% pcshow(Z', ones(length(p1), 3).*[0, 0, 255])
+
+
+
+
+
+%%
+
+
+
+
+
+
+
+
 
 
 %%add outliers
