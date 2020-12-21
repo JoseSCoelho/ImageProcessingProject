@@ -77,6 +77,16 @@ function calcTransformacao(imgseq, indexes)
                 PC_B_Inliers.Location, 'scaling', false, 'reflection', false);
         rot = tr.T';
         trans = tr.c(1, :)';
+        
+        procrustesRigid = affine3d([[tr.T zeros(3, 1)]; [tr.c(1, :), 1]]);
+        
+        icpTransf = pcregistericp(PC_B_Inliers, PC_A_Inliers, ...
+            'InitialTransform', procrustesRigid, ...  %, 'Tolerance', [0.0001, 0.01]
+            'Verbose', true, 'InlierRatio', 0.9);
+        icpTransf = icpTransf.T';
+        
+        rot = icpTransf(1:3, 1:3);
+        trans = icpTransf(1:3, 4);
 
         %Guarda na posição (i, j) a transformação de j para i 
         rotations(i, j, :, :) = rot;

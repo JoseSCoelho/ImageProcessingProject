@@ -1,4 +1,4 @@
-clear all;
+%clear all;
 %close all;
 tic
 global rotations
@@ -8,19 +8,44 @@ global camera_params
 camera_params = load('calib.mat');
 
 w_frame = 1;
-max_n_points = 500000;
+max_n_points = 1000000;
 
 % imgseq = load('midair.mat');
 % imgseq = imgseq.ans;
 
-imgseq = load('hobbesquiet.mat');
-imgseq = imgseq.ans;
+% imgseq = load('newpiv2.mat');
+% imgseq = imgseq.ans;
 
 % imgseq = load('newpiv2.mat');
 % imgseq = imgseq.ans;
 
 % imgseq = load('short.mat');
 % imgseq = imgseq.ans;
+% 
+imgseq = [
+    struct('rgb','labpiv_unziped/rgb_image_1.png','depth','labpiv_unziped/depth_1.png')
+struct('rgb','labpiv_unziped/rgb_image_2.png','depth','labpiv_unziped/depth_2.png')
+struct('rgb','labpiv_unziped/rgb_image_3.png','depth','labpiv_unziped/depth_3.png')
+struct('rgb','labpiv_unziped/rgb_image_4.png','depth','labpiv_unziped/depth_4.png')
+struct('rgb','labpiv_unziped/rgb_image_5.png','depth','labpiv_unziped/depth_5.png')
+struct('rgb','labpiv_unziped/rgb_image_6.png','depth','labpiv_unziped/depth_6.png')
+struct('rgb','labpiv_unziped/rgb_image_7.png','depth','labpiv_unziped/depth_7.png')
+struct('rgb','labpiv_unziped/rgb_image_8.png','depth','labpiv_unziped/depth_8.png')
+struct('rgb','labpiv_unziped/rgb_image_9.png','depth','labpiv_unziped/depth_9.png')
+struct('rgb','labpiv_unziped/rgb_image_10.png','depth','labpiv_unziped/depth_10.png')
+struct('rgb','labpiv_unziped/rgb_image_11.png','depth','labpiv_unziped/depth_11.png')
+struct('rgb','labpiv_unziped/rgb_image_12.png','depth','labpiv_unziped/depth_12.png')
+struct('rgb','labpiv_unziped/rgb_image_13.png','depth','labpiv_unziped/depth_13.png')
+struct('rgb','labpiv_unziped/rgb_image_14.png','depth','labpiv_unziped/depth_14.png')
+struct('rgb','labpiv_unziped/rgb_image_15.png','depth','labpiv_unziped/depth_15.png')
+struct('rgb','labpiv_unziped/rgb_image_16.png','depth','labpiv_unziped/depth_16.png')
+struct('rgb','labpiv_unziped/rgb_image_17.png','depth','labpiv_unziped/depth_17.png')
+struct('rgb','labpiv_unziped/rgb_image_18.png','depth','labpiv_unziped/depth_18.png')
+struct('rgb','labpiv_unziped/rgb_image_19.png','depth','labpiv_unziped/depth_19.png')
+struct('rgb','labpiv_unziped/rgb_image_20.png','depth','labpiv_unziped/depth_20.png')
+struct('rgb','labpiv_unziped/rgb_image_21.png','depth','labpiv_unziped/depth_21.png')
+struct('rgb','labpiv_unziped/rgb_image_22.png','depth','labpiv_unziped/depth_22.png')
+          ];
 
 
 numImgs = length(imgseq);

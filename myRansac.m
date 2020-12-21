@@ -13,16 +13,6 @@ function bestInliers = myRansac(p1, p2, maxIterations, threshold)
         if(size(model) < 3)
             continue;
         end
-
-%         [d,Z,tr] = procrustes(p1(:, inliersHypothesis)', ...
-%             p2(:, inliersHypothesis)', 'scaling', false, 'reflection', false);
-%         rot = tr.T';
-%         trans = tr.c(1, :)';
-%         
-%         model = [rot trans];
-%         
-        
-        
         %Testa cada ponto que não os inliersHypothesis para ver se são inliers deste
         %modelo
         p2Transformed = model*[p2(:, ptsToTest); ones(1, length(ptsToTest))];
