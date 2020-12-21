@@ -45,7 +45,7 @@ function new_pc = generateMatchesPc(depth_array, im, camera_params)
     find_= find(rgb_image(2,:)>rows);
     rgb_image(2, find_)=rows;
 
-    %Cria e preenche uma imagem RGB com os pontos fornecidos pela camera depth
+    %Cria e preenche uma imagem com os pontos fornecidos pela camera depth
     im_virtual = zeros(rows, cols, 3);
     for i=1:length(rgb_image)
         im_virtual(rgb_image(2,i),rgb_image(1,i),:)=im(rgb_image(2,i), rgb_image(1,i),:);

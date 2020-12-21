@@ -20,8 +20,6 @@ sumDiffIdentity = 0;
 threshDiffIdentity = 0;
 treshTransl = 0;
 
-% TODO: ler da matriz
-
 for i = 2:(numImgs - 1)
     for j = 1:(i-1)
         Rji = reshape(rotations(j, i, :, :), [3, 3]);
@@ -40,8 +38,8 @@ for i = 2:(numImgs - 1)
             sumDiffTransl = sumDiffTransl + diffTransl;
             sumDiffIdentity = sumDiffIdentity + diffIdentity;
             
-            threshDiffIdentity = sumDiffIdentity / j * 1.2;
-            treshTransl = sumDiffTransl / j * 1.2;
+            threshDiffIdentity = sumDiffIdentity / j;
+            treshTransl = sumDiffTransl / j;
         
             % ignora as imagens consecutivas
             continue;

@@ -26,31 +26,27 @@ function calcTransformacao(imgseq, indexes)
         %analisa para a imagem i e j
         if(i == 1 || ~isempty(indexes))
             % primeira iteração
-            im = imread(imgseq(i).rgb);
-%             depth_array = load(imgseq(i).depth);%imread(imgseq(i).depth);
-%             depth_array = depth_array.depth_array;
+            im_A = imread(imgseq(i).rgb);
             depth_array = imread(imgseq(i).depth);
 
 
-            [virtual_rgb_A, virtual_depth_A] = get_virtual_img(depth_array, im, camera_params);
+            virtual_depth_A = get_virtual_img(depth_array, camera_params);
             %Obtem as features e descritores de cada imagem
-            [frame_A, descriptor_A] = vl_sift(single(rgb2gray(im)));
+            [frame_A, descriptor_A] = vl_sift(single(rgb2gray(im_A)));
             frame_A(1:2, :) = round(frame_A(1:2, :)); %Arredonda os pontos obtidos para serem
                                                 %usados como pixeis
         else
-            virtual_rgb_A = virtual_rgb_B;
+            im_A = im_B;
             virtual_depth_A = virtual_depth_B;
             frame_A = frame_B;
             descriptor_A = descriptor_B;
         end
 
-        im = imread(imgseq(j).rgb);
-%         depth_array = load(imgseq(j).depth);
-%         depth_array = depth_array.depth_array;
+        im_B = imread(imgseq(j).rgb);
         depth_array = imread(imgseq(j).depth);
 
-        [virtual_rgb_B, virtual_depth_B] = get_virtual_img(depth_array, im, camera_params);
-        [frame_B, descriptor_B] = vl_sift(single(rgb2gray(im)));
+        virtual_depth_B = get_virtual_img(depth_array, camera_params);
+        [frame_B, descriptor_B] = vl_sift(single(rgb2gray(im_B)));
         frame_B(1:2, :) = round(frame_B(1:2, :));
 
         %Obtem os pontos correspondentes entre as duas imagens
@@ -64,8 +60,8 @@ function calcTransformacao(imgseq, indexes)
         match_coord_B = frame_B(1:2, matches(2, :));
 
         %% Gera as pointclouds com os pontos que deram match
-        PC_A = generate_PC(virtual_depth_A, match_coord_A, virtual_rgb_A, camera_params);
-        PC_B = generate_PC(virtual_depth_B, match_coord_B, virtual_rgb_B, camera_params);
+        PC_A = generate_PC(virtual_depth_A, match_coord_A, im_A, camera_params);
+        PC_B = generate_PC(virtual_depth_B, match_coord_B, im_B, camera_params);
 
         %Elimina os pontos da pointCloud sem correspondencia na imagem depth
         [PC_A, PC_B] = removeZeroPts(PC_A, PC_B);
@@ -82,15 +78,22 @@ function calcTransformacao(imgseq, indexes)
         rot = tr.T';
         trans = tr.c(1, :)';
 
+        %Guarda na posição (i, j) a transformação de j para i 
         rotations(i, j, :, :) = rot;
         translations(i, j, :, :) = trans;
+        
+        %Guarda na posição (j, i) a transformação de i para j
         rotations(j, i, :, :) = rot';
-        translations(j, i, :, :) = trans';
+        translations(j, i, :, :) = -rot'*trans;
 
         if(i > 1)
             %% guarda em (1, j)
             rotations(1, j, :, :) = reshape(rotations(1, i, :, :), [3, 3]) * rot;
             translations(1, j, :, :) = reshape(rotations(1, i, :, :), [3, 3]) * trans + reshape(translations(1, i, :, :), [3, 1]);
+            %Guarda na posição transposta da matriz (transformação de 1 para j)
+            rotations(j, 1, :, :) = reshape(rotations(1, j, :, :), [3, 3])';
+            translations(j, 1, :, :) = -reshape(rotations(1, j, :, :), [3, 3])'*reshape(translations(1, j, :, :), [3, 1]);
+
         end
     end
 end

@@ -1,4 +1,4 @@
-function [virtual_rgb, virtual_depth] = get_virtual_img(depth_array, im, camera_params)
+function [virtual_depth] = get_virtual_img(depth_array, camera_params)
     % Todos os pixeis
     [rows,cols]=size(depth_array);
     [vect_coluna,vect_linha]= meshgrid(1:cols,1:rows);
@@ -60,23 +60,14 @@ function [virtual_rgb, virtual_depth] = get_virtual_img(depth_array, im, camera_
     rgb_image(2, find_) = rows;
     
     
-    %Cria e preenche uma imagem depth do ponto de vista da camera RGB
-    virtual_depth = zeros(rows, cols);
-    for i=1:length(rgb_image)
-        virtual_depth(rgb_image(2,i),rgb_image(1,i)) = rgb_image(3,i);
-        %virtual_depth(rgb_image(2,i),rgb_image(1,i)) = depth_array();
-    end
-    
-    
-    %Cria e preenche uma imagem RGB com os pontos fornecidos pela camera depth
-    virtual_rgb = zeros(rows, cols, 3);
-    for i=1:length(rgb_image)
-        virtual_rgb(rgb_image(2,i),rgb_image(1,i),:) = im(rgb_image(2,i), rgb_image(1,i),:);
-    end
-%     figure()
-%     imshow(uint8(virtual_rgb));
-%     figure()
-%     imagesc(virtual_depth);
-    %Corta os pixeis sem informação?????
-    
+%     %Cria e preenche uma imagem depth do ponto de vista da camera RGB
+%     virtual_depth = zeros(rows, cols);
+%     for i=1:length(rgb_image)
+%         virtual_depth(rgb_image(2,i),rgb_image(1,i)) = rgb_image(3,i);
+%     end
+
+    virtual_depth = zeros(rows * cols, 1);
+    virtual_depth(sub2ind([rows, cols], rgb_image(2,:),rgb_image(1,:))) = rgb_image(3,:);
+    virtual_depth = reshape(virtual_depth, [rows, cols]);
+
 end
