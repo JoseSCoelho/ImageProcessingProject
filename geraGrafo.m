@@ -45,7 +45,7 @@ for i = 2:(numImgs - 1)
             continue;
         end
         
-        if(diffIdentity < threshDiffIdentity && diffTransl < treshTransl)
+        if(false && diffIdentity < threshDiffIdentity*1.1 && diffTransl < treshTransl*1.1)
             % Descobriu um caminho melhor (j) <- (i) (j é sempre menor)
             disp([i, j])
             G = addedge(G, i, j, 1);
