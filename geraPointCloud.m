@@ -64,5 +64,11 @@ for i = 1:numImgs
         pc = pcdownsample(pc, 'gridAverage', grid_Avg);
     end
 end
+
+% downsample Final para garantir que n. pontos está abaixo de max_n_points
+percentage_to_remove = max_n_points / pc.Count;
+if(percentage_to_remove < 1)
+    pc = pcdownsample(pc, 'random', percentage_to_remove);
 end
 
+end

@@ -78,11 +78,12 @@ function calcTransformacao(imgseq, indexes)
         rot = tr.T';
         trans = tr.c(1, :)';
         
+        %% ICP 
         procrustesRigid = affine3d([[tr.T zeros(3, 1)]; [tr.c(1, :), 1]]);
         
         icpTransf = pcregistericp(PC_B_Inliers, PC_A_Inliers, ...
             'InitialTransform', procrustesRigid, ...  %, 'Tolerance', [0.0001, 0.01]
-            'Verbose', true, 'InlierRatio', 0.9);
+            'Verbose', false, 'InlierRatio', 0.9);
         icpTransf = icpTransf.T';
         
         rot = icpTransf(1:3, 1:3);

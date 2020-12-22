@@ -46,10 +46,10 @@ function [FromCam2W, XYZ, RGB] = rigid_transforms(imgseq, w_frame, cam_params, m
         for j = i+1:numImgs
             if(sum(sum(abs(reshape(rotations(i, j, :, :), [3,3])))) == 0)
                 Ri1 = reshape(rotations(i, 1, :, :), [3, 3]);
-                Rj1 = reshape(rotations(j, 1, :, :), [3, 3]);
+                % Rj1 = reshape(rotations(j, 1, :, :), [3, 3]);
                 R1j = reshape(rotations(1, j, :, :), [3, 3]);
 
-                T1i = reshape(translations(1, i, :, :), [3, 1]);
+                % T1i = reshape(translations(1, i, :, :), [3, 1]);
                 Ti1 = reshape(translations(i, 1, :, :), [3, 1]);
                 T1j = reshape(translations(1, j, :, :), [3, 1]);
 
@@ -68,9 +68,9 @@ function [FromCam2W, XYZ, RGB] = rigid_transforms(imgseq, w_frame, cam_params, m
 
     %% 
     [pc, FromCam2W] = geraPointCloud(imgseq, G, w_frame, max_n_points);
-    figure();
-    pcshow(pc);
-    campos([0 0 0]);
+%     figure();
+%     pcshow(pc);
+%     campos([0 0 0]);
     
     XYZ = pc.Location;
     RGB = pc.Color;

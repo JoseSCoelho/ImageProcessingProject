@@ -1,4 +1,4 @@
-clear all;
+Countclear all;
 %close all;
 
 camera_params = load('calib.mat');
