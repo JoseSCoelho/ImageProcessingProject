@@ -1,4 +1,4 @@
-function pc = geraPointCloud(imgseq, G, w_frame, max_n_points)
+function [pc, FromCam2W] = geraPointCloud(imgseq, G, w_frame, max_n_points)
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -15,6 +15,8 @@ pixeis_all = [vect_coluna(:), vect_linha(:)];
 
 pc = pointCloud(double.empty(0, 3));
 
+FromCam2W = repmat(struct('R', 0, 'T', 0), numImgs, 1);
+
 for i = 1:numImgs
     % Gera as point cloud completas das imagens A e B
     disp(i)
@@ -29,13 +31,28 @@ for i = 1:numImgs
     PC_orig = pcdownsample(PC_orig, 'gridAverage', grid_Avg);
 %    	PC_atual = reshape(rotations(1, i, :, :), [3, 3]) * PC_orig.Location' + reshape(translations(1, i, :, :), [3, 1]);
     % Transforma a point cloud para a perspetiva da camara world frame
+    
     PC_atual = PC_orig.Location';
+    
+    % Transformation to world_frame
+    rot = eye(3);
+    trans = zeros(3, 1);
+    
+    % Cria a transformação para a world_frame juntando as trasnformações
+    % entre os saltos calculados no caminho mais curto
     if i ~=  w_frame
-        path = shortestpath(G,i,w_frame);
+        path = shortestpath(G, i, w_frame);
         for j = 2: length(path) 
-            PC_atual =  reshape(rotations(path(j), path(j-1), :, :), [3, 3]) * PC_atual + reshape(translations(path(j), path(j-1), :, :), [3, 1]);
-        end 
+            rot = reshape(rotations(path(j), path(j-1), :, :), [3, 3]) * rot;
+            trans = reshape(rotations(path(j), path(j-1), :, :), [3, 3]) * trans + reshape(translations(path(j), path(j-1), :, :), [3, 1]);
+        end
+        
+        PC_atual = rot * PC_atual + trans;
     end
+    
+    FromCam2W(i).R = rot;
+    FromCam2W(i).T = trans;
+    
         
     % Point cloud ja na trasnformacao da camara
     pc2 = pointCloud(PC_atual', 'color', uint8([PC_orig.Color]));
