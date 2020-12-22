@@ -22,7 +22,7 @@ treshTransl = 0;
 for i = 1:(numImgs - 1)
     [diffTransl, diffRot] = calcula_erro(i, i+1);
 
-    % ISTO SERVE PARA VER QUAL É UM BOM THRESHOLD. Faz uma média
+    % Determinar um treshold. Faz uma média
     % das diferenças entre as consecutivas, para perceber o que é
     % uma transformação entre 2 imagens parecidas
     sumDiffTransl = sumDiffTransl + diffTransl;

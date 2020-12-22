@@ -14,13 +14,6 @@ function bestInliers = myRansac(p1, p2, maxIterations, threshold)
             continue;
         end
 
-%         [d,Z,tr] = procrustes(p1(:, inliersHypothesis)', ...
-%             p2(:, inliersHypothesis)', 'scaling', false, 'reflection', false);
-%         rot = tr.T';
-%         trans = tr.c(1, :)';
-% 
-%         model = [rot trans];
-
         %Testa cada ponto que não os inliersHypothesis para ver se são inliers deste
         %modelo
         p2Transformed = model*[p2(:, ptsToTest); ones(1, length(ptsToTest))];
@@ -37,16 +30,7 @@ function bestInliers = myRansac(p1, p2, maxIterations, threshold)
     end
 end
 
-function rt = dlt(p1, p2)
-    % Returns the matrix RT that contains the transformation from p2 to p1
-%     if rank(p1) < 3 || rank(p2) < 3 || rcond(p1'*p1) < 10^(-18) || rcond(p2'*p2) < 10^(-18)
-%         rt = 0;
-%     else
-% %         rt = p1 / [p2; ones(1, length(p2))];
-%         rt = [p2; ones(1, length(p2))]' \ p1';
-%         rt = rt';
-%     end
-    
+function rt = dlt(p1, p2)   
     if rank(p1) < 3 || rank(p2) < 3
         rt = 0;
         return;

@@ -1,7 +1,4 @@
 function [pc, FromCam2W] = geraPointCloud(imgseq, G, w_frame, max_n_points)
-%UNTITLED Summary of this function goes here
-%   Detailed explanation goes here
-
 global rotations
 global translations
 global camera_params
@@ -29,14 +26,15 @@ for i = 1:numImgs
     %Point cloud na perspetiva da camara i
     PC_orig = generate_PC(virtual_depth_A, pixeis_all', im, camera_params);
     PC_orig = pcdownsample(PC_orig, 'gridAverage', grid_Avg);
-%    	PC_atual = reshape(rotations(1, i, :, :), [3, 3]) * PC_orig.Location' + reshape(translations(1, i, :, :), [3, 1]);
-    % Transforma a point cloud para a perspetiva da camara world frame
+    
     
     PC_atual = PC_orig.Location';
     
+    %% Transforma a point cloud para a perspetiva da camara world frame
     % Transformation to world_frame
     rot = eye(3);
     trans = zeros(3, 1);
+    
     
     % Cria a transformação para a world_frame juntando as trasnformações
     % entre os saltos calculados no caminho mais curto
@@ -57,6 +55,7 @@ for i = 1:numImgs
     % Point cloud ja na trasnformacao da camara
     pc2 = pointCloud(PC_atual', 'color', uint8([PC_orig.Color]));
     
+    %% merge das PCs
     pc = pcmerge(pc, pc2, grid_Avg);
  
     if length(pc.Location) > max_n_points

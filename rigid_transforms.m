@@ -1,9 +1,3 @@
-%clear all;
-%close all;
-
-% imgseq = load('newpiv2.mat'); imgseq = imgseq.ans;
-% [f, xyz, rg] = rigid_transforms(imgseq, 2, load('calib.mat'), 500000)
-
 function [FromCam2W, XYZ, RGB] = rigid_transforms(imgseq, w_frame, cam_params, max_n_points)
     tic
     global rotations
@@ -12,19 +6,6 @@ function [FromCam2W, XYZ, RGB] = rigid_transforms(imgseq, w_frame, cam_params, m
     
     camera_params = cam_params;
 
-%     camera_params = load('calib.mat');
-%     w_frame = 1;
-%     max_n_points = 500000;
-    
-%     imgseq = load('midair.mat');
-%     imgseq = imgseq.ans;
-%     imgseq = load('newpiv2.mat');
-%     imgseq = imgseq.ans;
-%     imgseq = load('newpiv2.mat');
-%     imgseq = imgseq.ans;
-%     imgseq = load('short.mat');
-%     imgseq = imgseq.ans;
-    
     numImgs = length(imgseq);
     
     rotations = zeros(numImgs, numImgs, 3, 3);
@@ -68,10 +49,7 @@ function [FromCam2W, XYZ, RGB] = rigid_transforms(imgseq, w_frame, cam_params, m
 
     %% 
     [pc, FromCam2W] = geraPointCloud(imgseq, G, w_frame, max_n_points);
-%     figure();
-%     pcshow(pc);
-%     campos([0 0 0]);
-    
+
     XYZ = pc.Location;
     RGB = pc.Color;
     

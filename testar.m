@@ -1,7 +1,7 @@
 % clear all;
 close all;
 
-imgseq = load('newpiv2.mat');
+imgseq = load('midair.mat');
 imgseq = imgseq.ans;
 
 max_n_points = 500000;
@@ -11,5 +11,5 @@ max_n_points = 500000;
 
 pc = pointCloud(xyz, 'color', rgb);
 figure();
-pcshow(pc);set(gcf,'color','w');
+pcshow(pc);
 campos([0 0 0]);
