@@ -19,24 +19,28 @@ sumDiffRot = 0;
 threshDiffIdentity = 0;
 treshTransl = 0;
 
+for i = 1:(numImgs - 1)
+    [diffTransl, diffRot] = calcula_erro(i, i+1);
+
+    % ISTO SERVE PARA VER QUAL É UM BOM THRESHOLD. Faz uma média
+    % das diferenças entre as consecutivas, para perceber o que é
+    % uma transformação entre 2 imagens parecidas
+    sumDiffTransl = sumDiffTransl + diffTransl;
+    sumDiffRot = diffRot + diffRot;
+    
+    %Acrescenta uma aresta entre 2 imagens consecutivas
+    G = addedge(G, i, i+1, diffRot*diffTransl);
+end
+
+threshDiffIdentity = sumDiffRot / (numImgs - 1) * 1.2;
+treshTransl = sumDiffTransl / (numImgs - 1);
+
 for i = 2:(numImgs)
     for j = 1:(i-1)
         
         [diffTransl, diffRot] = calcula_erro(j, i);
         
         if (j == i-1)
-            % ISTO SERVE PARA VER QUAL É UM BOM THRESHOLD. Faz uma média
-            % das diferenças entre as consecutivas, para perceber o que é
-            % uma transformação entre 2 imagens parecidas
-            sumDiffTransl = sumDiffTransl + diffTransl;
-            sumDiffRot = diffRot + diffRot;
-            
-            threshDiffIdentity = sumDiffRot / j;
-            treshTransl = sumDiffTransl / j;
-            
-            %Acrescenta uma aresta entre 2 imagens consecutivas
-            G = addedge(G, j, i, diffRot*diffTransl);
-            
             % ignora as imagens consecutivas
             continue;
         end

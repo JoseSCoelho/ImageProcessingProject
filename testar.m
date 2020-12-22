@@ -11,5 +11,5 @@ max_n_points = 500000;
 
 pc = pointCloud(xyz, 'color', rgb);
 figure();
-pcshow(pc);
+pcshow(pc);set(gcf,'color','w');
 campos([0 0 0]);

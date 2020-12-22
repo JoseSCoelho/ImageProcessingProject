@@ -53,7 +53,7 @@ function calcTransformacao(imgseq, indexes)
             %matches(1) --> indices dos pontos guardados no frame_12
             %matches(2) --> indices dos pontos guardados no frame_12
         [matches, ~] = vl_ubcmatch(descriptor_A, descriptor_B) ;
-
+      
         %Cria 2 vetores para cada imagem com as coordenadas dos pontos obtidos pelo
         %ubcmatch. Um vetor com os pontos de depth e outro de RGB
         match_coord_A = frame_A(1:2, matches(1, :));
@@ -68,6 +68,53 @@ function calcTransformacao(imgseq, indexes)
 
         %% Corre o ransac, de modo a eliminar os outliers obtido pelo ubcmatch
         inliers_idx = myRansac(PC_A.Location', PC_B.Location', 500, 0.02);
+        
+        if(i == 6)
+            figure();
+            imagesc(cat(2, uint8(im_A),uint8(im_B)));
+            colormap(gray);
+            hold on ;
+
+            h1 = vl_plotframe(frame_A(:,matches(1, :))) ;
+            h2 = vl_plotframe(frame_A(:,matches(1, :))) ;
+            set(h1,'color','k','linewidth',3) ;
+            set(h2,'color','r','linewidth',2) ;
+
+            frame_B_B = frame_B + [ones(1, length(frame_B))*640; zeros(1, length(frame_B)); zeros(1, length(frame_B)); zeros(1, length(frame_B))];
+
+            h1 = vl_plotframe(frame_B_B(:,matches(2, :))) ;
+            h2 = vl_plotframe(frame_B_B(:,matches(2, :))) ;
+            set(h1,'color','k','linewidth',3) ;
+            set(h2,'color','r','linewidth',2) ;
+            
+            
+            
+            
+            
+            
+            hold on ;
+            xa = frame_A(1,matches(1,inliers_idx)); 
+            xb = frame_B(1,matches(2,inliers_idx));
+            ya = frame_A(2,matches(1,inliers_idx));
+            yb = frame_B(2,matches(2,inliers_idx));
+            h = line([xa ; xb+size(im_A,2)], [ya ; yb]);
+            set(h,'linewidth', 1, 'color', 'k');
+
+
+            h1 = vl_plotframe(frame_A(:,matches(1, inliers_idx))) ;
+            h2 = vl_plotframe(frame_A(:,matches(1, inliers_idx))) ;
+            set(h1,'color','k','linewidth',3) ;
+            set(h2,'color','g','linewidth',2) ;
+
+            frame_B_B = frame_B + [ones(1, length(frame_B))*640; zeros(1, length(frame_B)); zeros(1, length(frame_B)); zeros(1, length(frame_B))];
+
+            h1 = vl_plotframe(frame_B_B(:,matches(2, inliers_idx))) ;
+            h2 = vl_plotframe(frame_B_B(:,matches(2, inliers_idx))) ;
+            set(h1,'color','k','linewidth',3) ;
+            set(h2,'color','g','linewidth',2) ;
+        end
+        
+        
 
         PC_A_Inliers = pointCloud(PC_A.Location(inliers_idx, :), 'color', PC_A.Color(inliers_idx, :));
         PC_B_Inliers = pointCloud(PC_B.Location(inliers_idx, :), 'color', PC_B.Color(inliers_idx, :));

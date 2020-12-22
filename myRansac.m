@@ -10,13 +10,21 @@ function bestInliers = myRansac(p1, p2, maxIterations, threshold)
         ptsToTest = rnd(5:nPts);      % o resto dos pontos sao para serem testados
      
         model = dlt(p1(:, inliersHypothesis), p2(:, inliersHypothesis)); 
-        if(size(model) < 3)
+        if(length(model) < 3)
             continue;
         end
+
+%         [d,Z,tr] = procrustes(p1(:, inliersHypothesis)', ...
+%             p2(:, inliersHypothesis)', 'scaling', false, 'reflection', false);
+%         rot = tr.T';
+%         trans = tr.c(1, :)';
+% 
+%         model = [rot trans];
+
         %Testa cada ponto que não os inliersHypothesis para ver se são inliers deste
         %modelo
         p2Transformed = model*[p2(:, ptsToTest); ones(1, length(ptsToTest))];
-        norms = sqrt(sum((p1(:, ptsToTest)-p2Transformed).^2));
+        norms = vecnorm(p1(:, ptsToTest)-p2Transformed); %sqrt(sum((p1(:, ptsToTest)-p2Transformed).^2));
         isInlier = norms < threshold;
         
         %number of nodes with norm smalled than the treshold
@@ -31,11 +39,35 @@ end
 
 function rt = dlt(p1, p2)
     % Returns the matrix RT that contains the transformation from p2 to p1
-    if rank(p1) < 3 || rank(p2) < 3 || rcond(p1'*p1) < 10^(-18) || rcond(p2'*p2) < 10^(-18)
+%     if rank(p1) < 3 || rank(p2) < 3 || rcond(p1'*p1) < 10^(-18) || rcond(p2'*p2) < 10^(-18)
+%         rt = 0;
+%     else
+% %         rt = p1 / [p2; ones(1, length(p2))];
+%         rt = [p2; ones(1, length(p2))]' \ p1';
+%         rt = rt';
+%     end
+    
+    if rank(p1) < 3 || rank(p2) < 3
         rt = 0;
-    else
-%         rt = p1 / [p2; ones(1, length(p2))];
-        rt = [p2; ones(1, length(p2))]' \ p1';
-        rt = rt';
+        return;
     end
+
+    A = zeros(3*length(p1), 12);
+    b = zeros(3*length(p1), 1);
+    
+    for i = 1:length(p1)
+        A((i*3 - 2):(i*3), :) = [p2(1, i) p2(2, i) p2(3, i) 1 0 0 0 0 0 0 0 0;
+                     0 0 0 0 p2(1, i) p2(2, i) p2(3, i) 1 0 0 0 0;
+                     0 0 0 0 0 0 0 0 p2(1, i) p2(2, i) p2(3, i) 1;];
+        b((i*3 - 2):(i*3)) = [p1(1, i); p1(2, i); p1(3, i)];
+    end
+    
+    if(rcond(A' * A) < 1*10^-16)
+        rt = 0;
+        return
+    end
+    
+    rt = (A'*A) \ (A'*b);
+    rt = reshape(rt, [4, 3]);
+    rt = rt';
 end
